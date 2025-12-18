@@ -89,7 +89,7 @@ docker pull "$FRONTEND_IMAGE"
 docker run -d \
   --name employee-backend \
   -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:mysql://$DB_HOST:3306/employees \
+  -e SPRING_DATASOURCE_URL=jdbc:mysql://$DB_HOST:3306/employee \
   -e SPRING_DATASOURCE_USERNAME=$DB_USER \
   -e SPRING_DATASOURCE_PASSWORD=$DB_PASS \
   "$BACKEND_IMAGE"
