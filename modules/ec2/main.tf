@@ -19,3 +19,31 @@ resource "aws_instance" "employee_app_server" {
     Project = "Employee-App"
   }
 }
+
+# ----------------------------
+# IAM Role for EC2 (SSM)
+# ----------------------------
+resource "aws_iam_role" "employee_ec2_role" {
+  name = "employee-ec2-ssm-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "employee_ec2_ssm" {
+  role       = aws_iam_role.employee_ec2_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "employee_ec2_profile" {
+  name = "employee-ec2-profile"
+  role = aws_iam_role.employee_ec2_role.name
+}
