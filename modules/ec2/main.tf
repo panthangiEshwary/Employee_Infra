@@ -8,6 +8,9 @@ resource "aws_instance" "employee_app_server" {
 
   user_data = file("${path.module}/userdata.sh")
 
+  associate_public_ip_address = true
+  iam_instance_profile        = aws_iam_instance_profile.employee_ec2_profile.name
+
   lifecycle {
     create_before_destroy = true
   }
@@ -17,3 +20,4 @@ resource "aws_instance" "employee_app_server" {
     Project = "Employee-App"
   }
 }
+
