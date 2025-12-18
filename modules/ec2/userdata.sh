@@ -1,31 +1,34 @@
 #!/bin/bash
+set -e
 
 echo "========== Employee App EC2 Bootstrap Started =========="
 
-# --------------------------------------------------
-# Update system
-# --------------------------------------------------
+# -------------------------------
+# System update
+# -------------------------------
 yum update -y
 
-# --------------------------------------------------
+# -------------------------------
 # Install required packages
-# NOTE: Do NOT install curl (AL2023 already has curl-minimal)
-# --------------------------------------------------
-yum install -y docker git wget || true
+# -------------------------------
+yum install -y docker git wget
 
-# --------------------------------------------------
-# Start & enable Docker
-# --------------------------------------------------
+# -------------------------------
+# Docker setup
+# -------------------------------
 systemctl start docker
 systemctl enable docker
-
-# Allow ec2-user to run docker
 usermod -aG docker ec2-user
 
-# --------------------------------------------------
+# -------------------------------
+# Ensure SSM Agent is running
+# -------------------------------
+systemctl enable amazon-ssm-agent
+systemctl start amazon-ssm-agent
+
+# -------------------------------
 # Install Node Exporter
-# Exposes metrics at :9100/metrics
-# --------------------------------------------------
+# -------------------------------
 useradd --no-create-home --shell /bin/false node_exporter || true
 
 cd /tmp
@@ -50,13 +53,53 @@ WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl start node_exporter
 systemctl enable node_exporter
+systemctl start node_exporter
 
-# --------------------------------------------------
-# Placeholder for Application Deployment
-# --------------------------------------------------
-mkdir -p /opt/employee-app
-echo "Application EC2 ready. Awaiting deployment via CI/CD." > /opt/employee-app/README.txt
+# -------------------------------
+# App directory
+# -------------------------------
+mkdir -p /opt/app
+chown -R ec2-user:ec2-user /opt/app
+
+# -------------------------------
+# Create deploy.sh (DO NOT RUN)
+# -------------------------------
+cat << 'EOF' > /opt/app/deploy.sh
+#!/bin/bash
+set -e
+
+echo "========== Deployment Started =========="
+
+echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+
+docker stop employee-backend || true
+docker stop employee-frontend || true
+docker rm employee-backend || true
+docker rm employee-frontend || true
+
+docker pull "$BACKEND_IMAGE"
+docker pull "$FRONTEND_IMAGE"
+
+docker run -d \
+  --name employee-backend \
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:mysql://$DB_HOST:3306/employees \
+  -e SPRING_DATASOURCE_USERNAME=$DB_USER \
+  -e SPRING_DATASOURCE_PASSWORD=$DB_PASS \
+  "$BACKEND_IMAGE"
+
+docker run -d \
+  --name employee-frontend \
+  -p 80:80 \
+  "$FRONTEND_IMAGE"
+
+echo "========== Deployment Completed =========="
+EOF
+
+chmod +x /opt/app/deploy.sh
+
+echo "EC2 ready. deploy.sh installed. Waiting for CI/CD trigger." \
+  > /opt/app/README.txt
 
 echo "========== Employee App EC2 Bootstrap Completed =========="
