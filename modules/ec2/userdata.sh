@@ -71,7 +71,12 @@ set -e
 
 echo "========== Deployment Started =========="
 
-echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+# -------------------------------
+# GHCR login (only for private images)
+# -------------------------------
+if [[ "$BACKEND_IMAGE" == ghcr.io/* ]]; then
+  echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+fi
 
 docker stop employee-backend || true
 docker stop employee-frontend || true
