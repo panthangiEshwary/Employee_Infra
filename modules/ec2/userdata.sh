@@ -92,7 +92,7 @@ docker run -d \
   --name employee-backend \
   --network employee-net \
   -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:mysql://$DB_HOST:3306/employee \
+  -e SPRING_DATASOURCE_URL=jdbc:mysql://$DB_HOST:3306/employee_availability?createDatabaseIfNotExist=true \
   -e SPRING_DATASOURCE_USERNAME=$DB_USER \
   -e SPRING_DATASOURCE_PASSWORD=$DB_PASS \
   "$BACKEND_IMAGE"
