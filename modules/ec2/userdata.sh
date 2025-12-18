@@ -97,12 +97,12 @@ docker run -d --name employee-backend \
 -e SPRING_DATASOURCE_PASSWORD="${DB_PASS}" \
 "${BACKEND_IMAGE}"
 
-docker run -d \
-  --name employee-frontend \
-  --restart unless-stopped \
-  --network employee-net \
-  -p 80:80 \
-  "$FRONTEND_IMAGE"
+docker run -d --name employee-frontend \
+--restart unless-stopped \
+--network employee-net \
+-p 80:80 \
+"${FRONTEND_IMAGE}"
+
 
 echo "========== Deployment Completed =========="
 EOF
