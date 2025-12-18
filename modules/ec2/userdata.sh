@@ -86,8 +86,11 @@ docker rm employee-frontend || true
 docker pull "$BACKEND_IMAGE"
 docker pull "$FRONTEND_IMAGE"
 
+docker network create employee-net || true
+
 docker run -d \
   --name employee-backend \
+  --network employee-net \
   -p 8080:8080 \
   -e SPRING_DATASOURCE_URL=jdbc:mysql://$DB_HOST:3306/employee \
   -e SPRING_DATASOURCE_USERNAME=$DB_USER \
@@ -96,6 +99,7 @@ docker run -d \
 
 docker run -d \
   --name employee-frontend \
+  --network employee-net \
   -p 80:80 \
   "$FRONTEND_IMAGE"
 
