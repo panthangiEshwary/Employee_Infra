@@ -32,6 +32,15 @@ resource "aws_security_group" "employee_ec2_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+# Frontend (Angular / Nginx)
+  ingress {
+    description = "Frontend HTTP access"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   # Outbound - allow all
   egress {
     from_port   = 0
@@ -156,3 +165,4 @@ resource "aws_security_group" "employee_monitor_sg" {
     Project = "Employee-App"
   }
 }
+
