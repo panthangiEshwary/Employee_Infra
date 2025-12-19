@@ -43,9 +43,11 @@ cat <<EOF > docker-compose.yml
 ${docker_compose}
 EOF
 
-# -------------------------
-# Start stack
-# -------------------------
+echo "Waiting for Docker..."
+until docker info >/dev/null 2>&1; do
+  sleep 5
+done
+
 /usr/local/bin/docker-compose up -d
 
 echo "===== Monitoring bootstrap completed ====="
