@@ -12,3 +12,8 @@ output "employee_rds_sg_id" {
   description = "Security group ID for Employee RDS"
   value       = aws_security_group.employee_rds_sg.id
 }
+
+output "employee_monitor_sg_id" {
+  description = "Security group ID for Monitoring EC2"
+  value       = aws_security_group.employee_monitor_sg.id
+}

@@ -124,11 +124,22 @@ resource "aws_security_group" "employee_rds_sg" {
 #################################
 # Monitoring Security Group
 #################################
+#################################
+# Monitoring Security Group
+# Used by:
+# - Monitoring EC2 instance
+# Services:
+# - Grafana
+# - Prometheus
+# - Alertmanager
+# - n8n
+#################################
 resource "aws_security_group" "employee_monitor_sg" {
   name        = "employee-monitor-sg"
-  description = "Allow Grafana, Prometheus and SSH access"
+  description = "Allow monitoring tools access"
   vpc_id      = var.vpc_id
 
+  # SSH access (only from your IP)
   ingress {
     description = "SSH access"
     from_port   = 22
@@ -137,6 +148,7 @@ resource "aws_security_group" "employee_monitor_sg" {
     cidr_blocks = [var.my_ip_cidr]
   }
 
+  # Grafana
   ingress {
     description = "Grafana UI"
     from_port   = 3000
@@ -145,6 +157,7 @@ resource "aws_security_group" "employee_monitor_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Prometheus
   ingress {
     description = "Prometheus UI"
     from_port   = 9090
@@ -153,6 +166,25 @@ resource "aws_security_group" "employee_monitor_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Alertmanager
+  ingress {
+    description = "Alertmanager UI"
+    from_port   = 9093
+    to_port     = 9093
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # n8n
+  ingress {
+    description = "n8n UI"
+    from_port   = 5678
+    to_port     = 5678
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Outbound - allow all
   egress {
     from_port   = 0
     to_port     = 0
@@ -165,4 +197,3 @@ resource "aws_security_group" "employee_monitor_sg" {
     Project = "Employee-App"
   }
 }
-

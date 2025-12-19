@@ -32,6 +32,20 @@ module "ec2" {
 }
 
 ############################
+# EC2 – Monitoring Server
+############################
+module "monitor_ec2" {
+  source = "./modules/ec2_mon"
+
+  monitor_ami_id   = var.monitor_ami_id
+  key_pair_name    = var.employee_key_pair_name
+  public_subnet_id = module.vpc.public_subnet_ids[0]
+  monitor_sg_id    = module.security_groups.employee_monitor_sg_id
+
+  app_private_ip   = module.ec2.private_ip
+}
+
+############################
 # RDS – Employee Database
 ############################
 module "rds" {

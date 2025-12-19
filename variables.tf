@@ -25,6 +25,18 @@ variable "employee_key_pair_name" {
   default     = "Esh"
 }
 
+################################
+# Monitoring EC2
+################################
+variable "monitor_ami_id" {
+  type        = string
+  description = "AMI ID for Monitoring EC2"
+  default     = "ami-068c0051b15cdb816"
+}
+
+################################
+# Employee EC2
+################################
 variable "employee_app_ami_id" {
   type        = string
   description = "AMI ID for Employee application EC2"
