@@ -41,6 +41,15 @@ resource "aws_security_group" "employee_ec2_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+# Node Exporter metrics (from Monitoring EC2 only)
+ingress {
+  description     = "Node Exporter metrics from Monitoring EC2"
+  from_port       = 9100
+  to_port         = 9100
+  protocol        = "tcp"
+  security_groups = [aws_security_group.employee_monitor_sg.id]
+}
+
   # Outbound - allow all
   egress {
     from_port   = 0
@@ -196,4 +205,5 @@ resource "aws_security_group" "employee_monitor_sg" {
     Name    = "Employee-Monitor-SG"
     Project = "Employee-App"
   }
+
 }
