@@ -1,23 +1,51 @@
 #!/bin/bash
+set -euxo pipefail
 
 LOG_FILE=/var/log/monitoring-bootstrap.log
 exec > >(tee -a $LOG_FILE) 2>&1
 
 echo "===== Monitoring bootstrap started ====="
 
-yum update -y
-yum install -y docker curl || amazon-linux-extras install docker -y
+####################################
+# System update & dependencies
+####################################
+dnf update -y
+
+# Fix curl conflict (AL2023 specific)
+dnf remove -y curl-minimal || true
+dnf install -y curl --allowerasing
+
+####################################
+# Install Docker
+####################################
+dnf install -y docker
 systemctl enable docker
 systemctl start docker
 
-mkdir -p /usr/local/bin
-curl -L https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
-  -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
+# Allow ec2-user to run docker
+usermod -aG docker ec2-user
 
+####################################
+# Install Docker Compose v2 (plugin)
+####################################
+mkdir -p /usr/local/lib/docker/cli-plugins
+
+curl -SL https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+docker compose version
+
+####################################
+# Prepare monitoring directories
+####################################
 mkdir -p /opt/monitoring/grafana/{dashboards,provisioning/datasources,provisioning/dashboards}
 cd /opt/monitoring
 
+####################################
+# Write config files from Terraform
+####################################
 cat <<EOF > prometheus.yml
 ${prometheus_config}
 EOF
@@ -34,12 +62,17 @@ cat <<EOF > docker-compose.yml
 ${docker_compose}
 EOF
 
-# Validate compose file
+####################################
+# Validate docker-compose.yml
+####################################
 if [ ! -s docker-compose.yml ]; then
   echo "ERROR: docker-compose.yml is empty"
   exit 1
 fi
 
+####################################
+# Grafana provisioning
+####################################
 cat <<EOF > grafana/provisioning/datasources/prometheus.yml
 apiVersion: 1
 datasources:
@@ -60,6 +93,9 @@ providers:
       path: /var/lib/grafana/dashboards
 EOF
 
+####################################
+# Download Grafana dashboards
+####################################
 curl -L https://grafana.com/api/dashboards/1860/revisions/37/download \
   -o grafana/dashboards/node-exporter.json
 
@@ -69,13 +105,17 @@ curl -L https://grafana.com/api/dashboards/4701/revisions/9/download \
 curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
   -o grafana/dashboards/spring-boot.json
 
-# Fix dashboard inputs
+# Remove dashboard input prompts
 sed -i 's/"__inputs": \[[^]]*\]/"__inputs": []/g' grafana/dashboards/*.json
 
+####################################
+# Wait for Docker and start stack
+####################################
 until docker info >/dev/null 2>&1; do
+  echo "Waiting for Docker..."
   sleep 5
 done
 
-/usr/local/bin/docker-compose up -d
+docker compose up -d
 
-echo "===== Monitoring bootstrap completed ====="
+echo "===== Monitoring bootstrap completed successfully ====="
