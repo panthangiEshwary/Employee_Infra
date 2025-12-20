@@ -7,7 +7,6 @@ services:
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
       - ./alert-rules.yml:/etc/prometheus/alert-rules.yml
-      - prometheus_data:/prometheus
     ports:
       - "9090:9090"
     depends_on:
@@ -26,6 +25,9 @@ services:
     container_name: grafana
     ports:
       - "3000:3000"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
 
   n8n:
     image: n8nio/n8n:latest
@@ -36,6 +38,3 @@ services:
       - N8N_PROTOCOL=http
     ports:
       - "5678:5678"
-
-volumes:
-  prometheus_data:
