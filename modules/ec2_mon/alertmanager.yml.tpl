@@ -1,5 +1,11 @@
+global:
+  resolve_timeout: 5m
+
 route:
   receiver: "n8n"
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 5m
 
 receivers:
   - name: "n8n"
