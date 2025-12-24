@@ -109,19 +109,6 @@ EOF
 
 chmod +x /opt/app/deploy.sh
 
-########################################
-# Initial Deployment (Day 0)
-########################################
-
-echo "===== TRIGGERING INITIAL DEPLOYMENT ====="
-export GHCR_USER="${GHCR_USER}"   # Ensure these are in your template variables
-export GHCR_TOKEN="${GHCR_TOKEN}" 
-export DB_HOST="${DB_HOST}"
-export DB_USER="${DB_USER}"
-export DB_PASS="${DB_PASS}"
-export BACKEND_IMAGE="${BACKEND_IMAGE}"
-export FRONTEND_IMAGE="${FRONTEND_IMAGE}"
-
 # Execute the script immediately
 /opt/app/deploy.sh
 
