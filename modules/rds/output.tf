@@ -23,6 +23,3 @@ output "employee_rds_instance_arn" {
   value       = aws_db_instance.employee_db.arn
 }
 
-output "rds_endpoint" {
-  value = aws_db_instance.this.address
-}
