@@ -29,7 +29,6 @@ module "ec2" {
   public_subnet_id       = module.vpc.public_subnet_ids[0]
   employee_ec2_sg_id = module.security_groups.employee_ec2_sg_id
 }
-=======
   backend_image = "ghcr.io/panthangiEshwary/employee-backend:30"
   frontend_image = "ghcr.io/panthangiEshwary/employee-frontend:30"
   GHCR_USER   = var.GHCR_USER
