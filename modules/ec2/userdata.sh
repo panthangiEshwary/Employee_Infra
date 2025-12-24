@@ -124,7 +124,6 @@ export DB_PASS="${DB_PASS}"
 export BACKEND_IMAGE="${BACKEND_IMAGE}"
 export FRONTEND_IMAGE="${FRONTEND_IMAGE}"
 
->>>>>>> 85ca07b (files)
 # Execute the script immediately
 /opt/app/deploy.sh
 
