@@ -58,3 +58,14 @@ variable "employee_db_master_password" {
   sensitive   = true
   default     = "admin1234"
 }
+
+variable "GHCR_USER" {
+  description = "GitHub Container Registry username"
+  type        = string
+}
+
+variable "GHCR_TOKEN" {
+  description = "GitHub Container Registry token"
+  type        = string
+  sensitive   = true
+}

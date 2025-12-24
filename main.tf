@@ -28,6 +28,19 @@ module "ec2" {
   employee_key_pair_name = var.employee_key_pair_name
   public_subnet_id       = module.vpc.public_subnet_ids[0]
   employee_ec2_sg_id = module.security_groups.employee_ec2_sg_id
+<<<<<<< HEAD
+=======
+  backend_image = "ghcr.io/panthangiEshwary/employee-backend:30"
+  frontend_image = "ghcr.io/panthangiEshwary/employee-frontend:30"
+  GHCR_USER   = var.GHCR_USER
+  GHCR_TOKEN  = var.GHCR_TOKEN
+  db_host = module.rds.rds_endpoint
+  db_port     = 3306
+  db_name     = "employee_availability"
+  db_user     = var.employee_db_master_username
+  db_password = var.employee_db_master_password
+
+>>>>>>> 85ca07b (files)
 }
 
 ############################
@@ -66,6 +79,4 @@ module "alb" {
   public_subnet_ids = module.vpc.public_subnet_ids
   alb_sg_id = module.security_groups.employee_alb_sg_id
   ec2_instance_id   = module.ec2.ec2_id
-
 }
-

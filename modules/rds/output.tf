@@ -22,3 +22,7 @@ output "employee_rds_instance_arn" {
   description = "ARN of the Employee RDS instance"
   value       = aws_db_instance.employee_db.arn
 }
+
+output "rds_endpoint" {
+  value = aws_db_instance.this.address
+}

@@ -16,6 +16,19 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
 
+    env:
+      AWS_REGION: us-east-1
+
+      # GHCR (used by EC2 user-data)
+      GHCR_USER: ${{ secrets.GHCR_USER }}
+      GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
+      # Terraform variables (IMPORTANT)
+      TF_VAR_employee_db_master_username: ${{ secrets.DB_MASTER_USERNAME }}
+      TF_VAR_employee_db_master_password: ${{ secrets.DB_MASTER_PASSWORD }}
+      TF_VAR_GHCR_USER: ${{ secrets.GHCR_USER }}
+      TF_VAR_GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
