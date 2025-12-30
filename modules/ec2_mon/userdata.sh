@@ -10,8 +10,6 @@ echo "===== Monitoring bootstrap started ====="
 # System update & dependencies
 ####################################
 dnf update -y
-
-# Fix curl conflict (AL2023 specific)
 dnf remove -y curl-minimal || true
 dnf install -y curl --allowerasing
 
@@ -22,19 +20,13 @@ dnf install -y docker
 systemctl enable docker
 systemctl start docker
 
-# Allow ec2-user to run docker
-usermod -aG docker ec2-user
-
 ####################################
-# Install Docker Compose v2 (plugin)
+# Install Docker Compose v2
 ####################################
 mkdir -p /usr/local/lib/docker/cli-plugins
-
 curl -SL https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
   -o /usr/local/lib/docker/cli-plugins/docker-compose
-
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-
 docker compose version
 
 ####################################
@@ -71,7 +63,7 @@ if [ ! -s docker-compose.yml ]; then
 fi
 
 ####################################
-# Grafana provisioning
+# Grafana datasource provisioning
 ####################################
 cat <<EOF > grafana/provisioning/datasources/prometheus.yml
 apiVersion: 1
@@ -81,32 +73,52 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
+    editable: true
 EOF
 
+####################################
+# Grafana dashboard provider
+####################################
 cat <<EOF > grafana/provisioning/dashboards/dashboards.yml
 apiVersion: 1
 providers:
   - name: Employee Dashboards
     folder: Employee
     type: file
+    disableDeletion: false
+    editable: true
     options:
       path: /var/lib/grafana/dashboards
 EOF
 
 ####################################
-# Download Grafana Dashboards
+# Download REQUIRED dashboards
 ####################################
+
+# 1️⃣ Node Exporter Full (1860)
 curl -L https://grafana.com/api/dashboards/1860/revisions/37/download \
-  -o /opt/monitoring/grafana/dashboards/node-exporter.json
+  -o grafana/dashboards/node-exporter.json
 
-# JVM Dashboard (Spring Boot 3 / Micrometer)
+# 2️⃣ JVM Micrometer (4701)
 curl -L https://grafana.com/api/dashboards/4701/revisions/9/download \
-  -o /opt/monitoring/grafana/dashboards/jvm.json
+  -o grafana/dashboards/jvm.json
 
-# Spring Boot Statistics
+# 3️⃣ Spring Boot Statistics (6756)
 curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
-  -o /opt/monitoring/grafana/dashboards/spring-boot.json
-  
+  -o grafana/dashboards/spring-boot.json
+
+####################################
+# PATCH dashboards to match Prometheus
+####################################
+
+# JVM & Spring Boot → employee-app
+sed -i 's/job=\\"\$job\\"/job=\\"employee-app\\"/g' grafana/dashboards/jvm.json
+sed -i 's/job=\\"\$job\\"/job=\\"employee-app\\"/g' grafana/dashboards/spring-boot.json
+sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/*.json
+
+# Node Exporter → employee-node-exporter
+sed -i 's/job=\\"\$job\\"/job=\\"employee-node-exporter\\"/g' grafana/dashboards/node-exporter.json
+
 ####################################
 # Wait for Docker and start stack
 ####################################
