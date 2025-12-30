@@ -19,7 +19,7 @@ groups:
           description: "Employee Node Exporter is DOWN"
 
       - alert: EmployeeHighCPUUsage
-        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[2m]))) * 100 > 80
+        expr: (1 - avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[2m]))) * 100 > 80
         for: 1m
         labels:
           severity: warning
@@ -33,3 +33,4 @@ groups:
           severity: warning
         annotations:
           description: "Employee App memory usage > 75%"
+
