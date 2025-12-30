@@ -94,16 +94,17 @@ providers:
 EOF
 
 ####################################
-# Download Grafana dashboards
+# Download Grafana Dashboards
 ####################################
 curl -L https://grafana.com/api/dashboards/1860/revisions/37/download \
-  -o grafana/dashboards/node-exporter.json
+  -o /opt/monitoring/grafana/dashboards/node-exporter.json
 
-curl -L https://grafana.com/api/dashboards/4701/revisions/9/download \
-  -o grafana/dashboards/jvm.json
+curl -L https://grafana.com/api/dashboards/4701/revisions/4/download \
+  -o /opt/monitoring/grafana/dashboards/jvm.json
 
-curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
-  -o grafana/dashboards/spring-boot.json
+curl -L https://grafana.com/api/dashboards/6756/revisions/2/download \
+  -o /opt/monitoring/grafana/dashboards/spring-boot.json
+  
 ####################################
 # Wait for Docker and start stack
 ####################################
