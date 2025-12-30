@@ -123,6 +123,16 @@ sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/spri
 sed -i 's/"node"/"employee-node-exporter"/g' grafana/dashboards/node-exporter.json
 
 ####################################
+# FIX GRAFANA JVM DASHBOARD VARIABLES (AUTO)
+####################################
+
+sed -i 's/label_values(application)/label_values(jvm_info, application)/g' \
+  grafana/dashboards/jvm.json
+
+sed -i 's/label_values([^,]*,instance)/label_values(jvm_info, instance)/g' \
+  grafana/dashboards/jvm.json
+
+####################################
 # Wait for Docker and start stack
 ####################################
 until docker info >/dev/null 2>&1; do
