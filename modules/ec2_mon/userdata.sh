@@ -99,10 +99,12 @@ EOF
 curl -L https://grafana.com/api/dashboards/1860/revisions/37/download \
   -o /opt/monitoring/grafana/dashboards/node-exporter.json
 
-curl -L https://grafana.com/api/dashboards/4701/revisions/4/download \
+# JVM Dashboard (Spring Boot 3 / Micrometer)
+curl -L https://grafana.com/api/dashboards/4701/revisions/9/download \
   -o /opt/monitoring/grafana/dashboards/jvm.json
 
-curl -L https://grafana.com/api/dashboards/6756/revisions/2/download \
+# Spring Boot Statistics
+curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
   -o /opt/monitoring/grafana/dashboards/spring-boot.json
   
 ####################################
