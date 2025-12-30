@@ -108,6 +108,11 @@ curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
 # Remove dashboard input prompts
 sed -i 's/"__inputs": \[[^]]*\]/"__inputs": []/g' grafana/dashboards/*.json
 
+# Force dashboards to use employee-app
+sed -i 's/\$job/employee-app/g' grafana/dashboards/*.json
+sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/*.json
+
+
 ####################################
 # Wait for Docker and start stack
 ####################################
