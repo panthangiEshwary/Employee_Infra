@@ -108,16 +108,19 @@ curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
   -o grafana/dashboards/spring-boot.json
 
 ####################################
-# PATCH dashboards to match Prometheus
+# HARD PATCH DASHBOARDS (CORRECT)
 ####################################
 
-# JVM & Spring Boot → employee-app
-sed -i 's/job=\\"\$job\\"/job=\\"employee-app\\"/g' grafana/dashboards/jvm.json
-sed -i 's/job=\\"\$job\\"/job=\\"employee-app\\"/g' grafana/dashboards/spring-boot.json
-sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/*.json
+# JVM dashboard
+sed -i 's/"spring-app"/"employee-app"/g' grafana/dashboards/jvm.json
+sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/jvm.json
 
-# Node Exporter → employee-node-exporter
-sed -i 's/job=\\"\$job\\"/job=\\"employee-node-exporter\\"/g' grafana/dashboards/node-exporter.json
+# Spring Boot dashboard
+sed -i 's/"spring-app"/"employee-app"/g' grafana/dashboards/spring-boot.json
+sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/spring-boot.json
+
+# Node Exporter dashboard
+sed -i 's/"node"/"employee-node-exporter"/g' grafana/dashboards/node-exporter.json
 
 ####################################
 # Wait for Docker and start stack
