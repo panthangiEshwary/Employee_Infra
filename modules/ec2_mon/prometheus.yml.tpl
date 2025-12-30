@@ -16,11 +16,10 @@ scrape_configs:
       - targets:
           - "${app_private_ip}:8080"
         labels:
-          instance: "employee-backend"
+          instance: "${app_private_ip}:8080"
+          application: "employee-availability-backend"
 
   - job_name: "employee-node-exporter"
     static_configs:
       - targets:
           - "${app_private_ip}:9100"
-
-
