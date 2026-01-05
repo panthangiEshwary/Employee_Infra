@@ -23,7 +23,7 @@ jobs:
       GHCR_USER: ${{ secrets.GHCR_USER }}
       GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
 
-      # Terraform variables (IMPORTANT)
+      # Terraform variables
       TF_VAR_employee_db_master_username: ${{ secrets.DB_MASTER_USERNAME }}
       TF_VAR_employee_db_master_password: ${{ secrets.DB_MASTER_PASSWORD }}
       TF_VAR_GHCR_USER: ${{ secrets.GHCR_USER }}
@@ -54,6 +54,15 @@ jobs:
       - name: Terraform Apply
         if: ${{ github.event.inputs.action == 'apply' }}
         run: terraform apply -auto-approve
+
+      - name: Trigger Application Deployment Workflow
+        if: ${{ github.event.inputs.action == 'apply' }}
+        run: |
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.APP_REPO_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/panthangiEshwary/Employee-app/actions/workflows/build-push-and-deploy.yml/dispatches \
+            -d '{"ref":"main"}'
 
       - name: Terraform Destroy
         if: ${{ github.event.inputs.action == 'destroy' }}
