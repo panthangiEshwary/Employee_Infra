@@ -63,7 +63,7 @@ mkdir -p /opt/app
 chown -R ec2-user:ec2-user /opt/app
 
 # -------------------------------
-# Create deploy.sh (DO NOT RUN)
+# Create deploy.sh (DO NOT RUN HERE)
 # -------------------------------
 cat << 'EOF' > /opt/app/deploy.sh
 #!/bin/bash
@@ -71,9 +71,6 @@ set -e
 
 echo "========== Deployment Started =========="
 
-# -------------------------------
-# GHCR login (only for private images)
-# -------------------------------
 if [[ "$BACKEND_IMAGE" == ghcr.io/* ]]; then
   echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 fi
@@ -89,45 +86,23 @@ docker pull "$FRONTEND_IMAGE"
 docker network create employee-net || true
 
 docker run -d --name employee-backend \
---restart unless-stopped \
---network employee-net \
--p 8080:8080 \
--e SPRING_DATASOURCE_URL="jdbc:mysql://${DB_HOST}:3306/employee_availability?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true" \
--e SPRING_DATASOURCE_USERNAME="${DB_USER}" \
--e SPRING_DATASOURCE_PASSWORD="${DB_PASS}" \
-"${BACKEND_IMAGE}"
+  --restart unless-stopped \
+  --network employee-net \
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL="jdbc:mysql://${DB_HOST}:3306/employee_availability?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true" \
+  -e SPRING_DATASOURCE_USERNAME="${DB_USER}" \
+  -e SPRING_DATASOURCE_PASSWORD="${DB_PASS}" \
+  "${BACKEND_IMAGE}"
 
 docker run -d --name employee-frontend \
---restart unless-stopped \
---network employee-net \
--p 80:80 \
-"${FRONTEND_IMAGE}"
-
+  --restart unless-stopped \
+  --network employee-net \
+  -p 80:80 \
+  "${FRONTEND_IMAGE}"
 
 echo "========== Deployment Completed =========="
 EOF
 
 chmod +x /opt/app/deploy.sh
-
-<<<<<<< HEAD
-=======
-########################################
-# Initial Deployment (Day 0)
-########################################
-
-echo "===== TRIGGERING INITIAL DEPLOYMENT ====="
-export GHCR_USER="${GHCR_USER}"   # Ensure these are in your template variables
-export GHCR_TOKEN="${GHCR_TOKEN}" 
-export DB_HOST="${DB_HOST}"
-export DB_USER="${DB_USER}"
-export DB_PASS="${DB_PASS}"
-export BACKEND_IMAGE="${BACKEND_IMAGE}"
-export FRONTEND_IMAGE="${FRONTEND_IMAGE}"
-
-# Execute the script immediately
-/opt/app/deploy.sh
-
-echo "EC2 ready. deploy.sh installed. Waiting for CI/CD trigger." \
-  > /opt/app/README.txt
 
 echo "========== Employee App EC2 Bootstrap Completed =========="
