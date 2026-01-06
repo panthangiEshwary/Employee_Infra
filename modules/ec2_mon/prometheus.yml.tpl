@@ -10,20 +10,12 @@ rule_files:
   - "alert-rules.yml"
 
 scrape_configs:
-  # ===============================
-  # Spring Boot Application Metrics
-  # ===============================
   - job_name: "employee-app"
     metrics_path: "/actuator/prometheus"
     static_configs:
       - targets:
           - "${app_private_ip}:8080"
-        labels:
-          application: "employee-availability-backend"
 
-  # ===============================
-  # Node Exporter Metrics
-  # ===============================
   - job_name: "employee-node-exporter"
     static_configs:
       - targets:
