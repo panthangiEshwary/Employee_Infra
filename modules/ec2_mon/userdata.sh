@@ -63,7 +63,7 @@ if [ ! -s docker-compose.yml ]; then
 fi
 
 ####################################
-# Grafana datasource provisioning
+# Grafana datasource provisioning (AUTO)
 ####################################
 cat <<EOF > grafana/provisioning/datasources/prometheus.yml
 apiVersion: 1
@@ -73,11 +73,11 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
-    editable: true
+    editable: false
 EOF
 
 ####################################
-# Grafana dashboard provider
+# Grafana dashboard provider (AUTO)
 ####################################
 cat <<EOF > grafana/provisioning/dashboards/dashboards.yml
 apiVersion: 1
@@ -86,7 +86,7 @@ providers:
     folder: Employee
     type: file
     disableDeletion: false
-    editable: true
+    editable: false
     options:
       path: /var/lib/grafana/dashboards
 EOF
@@ -95,42 +95,29 @@ EOF
 # Download REQUIRED dashboards
 ####################################
 
-# 1️⃣ Node Exporter Full (1860)
+# Node Exporter Full
 curl -L https://grafana.com/api/dashboards/1860/revisions/37/download \
   -o grafana/dashboards/node-exporter.json
 
-# 2️⃣ JVM Micrometer (4701)
+# JVM Micrometer
 curl -L https://grafana.com/api/dashboards/4701/revisions/9/download \
   -o grafana/dashboards/jvm.json
 
-# 3️⃣ Spring Boot Statistics (6756)
+# Spring Boot Statistics
 curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
   -o grafana/dashboards/spring-boot.json
 
 ####################################
-# HARD PATCH DASHBOARDS (CORRECT)
+# SAFE DASHBOARD PATCHING (ONLY JOB NAMES)
 ####################################
 
-# JVM dashboard
-sed -i 's/"spring-app"/"employee-app"/g' grafana/dashboards/jvm.json
-sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/jvm.json
+# JVM + Spring Boot dashboards → fix job name ONLY
+sed -i 's/"spring-boot"/"employee-app"/g' grafana/dashboards/jvm.json
+sed -i 's/"spring-boot"/"employee-app"/g' grafana/dashboards/spring-boot.json
 
-# Spring Boot dashboard
-sed -i 's/"spring-app"/"employee-app"/g' grafana/dashboards/spring-boot.json
-sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/spring-boot.json
-
-# Node Exporter dashboard
-sed -i 's/"node"/"employee-node-exporter"/g' grafana/dashboards/node-exporter.json
-
-####################################
-# FIX GRAFANA JVM DASHBOARD VARIABLES (AUTO)
-####################################
-
-sed -i 's/label_values(application)/label_values(jvm_info, application)/g' \
-  grafana/dashboards/jvm.json
-
-sed -i 's/label_values([^,]*,instance)/label_values(jvm_info, instance)/g' \
-  grafana/dashboards/jvm.json
+# Node Exporter dashboard → fix job label ONLY
+sed -i 's/job="node"/job="employee-node-exporter"/g' \
+  grafana/dashboards/node-exporter.json
 
 ####################################
 # Wait for Docker and start stack
