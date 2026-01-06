@@ -63,7 +63,7 @@ if [ ! -s docker-compose.yml ]; then
 fi
 
 ####################################
-# Grafana datasource provisioning (AUTO)
+# Grafana datasource provisioning
 ####################################
 cat <<EOF > grafana/provisioning/datasources/prometheus.yml
 apiVersion: 1
@@ -77,7 +77,7 @@ datasources:
 EOF
 
 ####################################
-# Grafana dashboard provider (AUTO)
+# Grafana dashboard provider
 ####################################
 cat <<EOF > grafana/provisioning/dashboards/dashboards.yml
 apiVersion: 1
@@ -86,41 +86,42 @@ providers:
     folder: Employee
     type: file
     disableDeletion: false
-    editable: false
+    editable: true
     options:
       path: /var/lib/grafana/dashboards
 EOF
 
 ####################################
-# Download REQUIRED dashboards
+# Download dashboards
 ####################################
-
-# Node Exporter Full
 curl -L https://grafana.com/api/dashboards/1860/revisions/37/download \
   -o grafana/dashboards/node-exporter.json
 
-# JVM Micrometer
 curl -L https://grafana.com/api/dashboards/4701/revisions/9/download \
   -o grafana/dashboards/jvm.json
 
-# Spring Boot Statistics
 curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
   -o grafana/dashboards/spring-boot.json
 
 ####################################
-# SAFE DASHBOARD PATCHING (ONLY JOB NAMES)
+# 🔥 CRITICAL FIXES (THIS SOLVES N/A)
 ####################################
 
-# JVM + Spring Boot dashboards → fix job name ONLY
+# ---- FIX JOB NAMES ----
 sed -i 's/"spring-boot"/"employee-app"/g' grafana/dashboards/jvm.json
 sed -i 's/"spring-boot"/"employee-app"/g' grafana/dashboards/spring-boot.json
+sed -i 's/job="node"/job="employee-node-exporter"/g' grafana/dashboards/node-exporter.json
 
-# Node Exporter dashboard → fix job label ONLY
-sed -i 's/job="node"/job="employee-node-exporter"/g' \
-  grafana/dashboards/node-exporter.json
+# ---- FIX APPLICATION VARIABLE ----
+sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/jvm.json
+sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/spring-boot.json
+
+# ---- FIX INSTANCE VARIABLE ----
+sed -i 's/label_values(application)/label_values(jvm_info, application)/g' grafana/dashboards/jvm.json
+sed -i 's/label_values([^,]*,instance)/label_values(jvm_info, instance)/g' grafana/dashboards/jvm.json
 
 ####################################
-# Wait for Docker and start stack
+# Start monitoring stack
 ####################################
 until docker info >/dev/null 2>&1; do
   echo "Waiting for Docker..."
