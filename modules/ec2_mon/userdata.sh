@@ -7,7 +7,7 @@ exec > >(tee -a $LOG_FILE) 2>&1
 echo "===== Monitoring bootstrap started ====="
 
 ####################################
-# System update & dependencies
+# System update
 ####################################
 dnf update -y
 dnf remove -y curl-minimal || true
@@ -27,16 +27,15 @@ mkdir -p /usr/local/lib/docker/cli-plugins
 curl -SL https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
   -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-docker compose version
 
 ####################################
-# Prepare monitoring directories
+# Prepare directories
 ####################################
 mkdir -p /opt/monitoring/grafana/{dashboards,provisioning/datasources,provisioning/dashboards}
 cd /opt/monitoring
 
 ####################################
-# Write config files from Terraform
+# Write Terraform-rendered files
 ####################################
 cat <<EOF > prometheus.yml
 ${prometheus_config}
@@ -55,14 +54,6 @@ ${docker_compose}
 EOF
 
 ####################################
-# Validate docker-compose.yml
-####################################
-if [ ! -s docker-compose.yml ]; then
-  echo "ERROR: docker-compose.yml is empty"
-  exit 1
-fi
-
-####################################
 # Grafana datasource provisioning
 ####################################
 cat <<EOF > grafana/provisioning/datasources/prometheus.yml
@@ -73,7 +64,6 @@ datasources:
     access: proxy
     url: http://prometheus:9090
     isDefault: true
-    editable: false
 EOF
 
 ####################################
@@ -85,49 +75,33 @@ providers:
   - name: Employee Dashboards
     folder: Employee
     type: file
-    disableDeletion: false
-    editable: true
     options:
       path: /var/lib/grafana/dashboards
 EOF
 
 ####################################
-# Download dashboards
+# Download OFFICIAL dashboards
 ####################################
+
+# Node Exporter
 curl -L https://grafana.com/api/dashboards/1860/revisions/37/download \
   -o grafana/dashboards/node-exporter.json
 
+# JVM Micrometer
 curl -L https://grafana.com/api/dashboards/4701/revisions/9/download \
   -o grafana/dashboards/jvm.json
 
+# Spring Boot Statistics
 curl -L https://grafana.com/api/dashboards/6756/revisions/1/download \
   -o grafana/dashboards/spring-boot.json
-
-####################################
-# 🔥 CRITICAL FIXES (THIS SOLVES N/A)
-####################################
-
-# ---- FIX JOB NAMES ----
-sed -i 's/"spring-boot"/"employee-app"/g' grafana/dashboards/jvm.json
-sed -i 's/"spring-boot"/"employee-app"/g' grafana/dashboards/spring-boot.json
-sed -i 's/job="node"/job="employee-node-exporter"/g' grafana/dashboards/node-exporter.json
-
-# ---- FIX APPLICATION VARIABLE ----
-sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/jvm.json
-sed -i 's/\$application/employee-availability-backend/g' grafana/dashboards/spring-boot.json
-
-# ---- FIX INSTANCE VARIABLE ----
-sed -i 's/label_values(application)/label_values(jvm_info, application)/g' grafana/dashboards/jvm.json
-sed -i 's/label_values([^,]*,instance)/label_values(jvm_info, instance)/g' grafana/dashboards/jvm.json
 
 ####################################
 # Start monitoring stack
 ####################################
 until docker info >/dev/null 2>&1; do
-  echo "Waiting for Docker..."
   sleep 5
 done
 
 docker compose up -d
 
-echo "===== Monitoring bootstrap completed successfully ====="
+echo "===== Monitoring bootstrap completed ====="
